@@ -28,31 +28,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/login", "/signup",
-                                 "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/products/add", "/products/*/delete").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
-                    .requestMatchers("/products/add",
-                            "/products/*/delete",
-                            "/products/*/edit").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .defaultSuccessUrl("/home", true)
-                .failureUrl("/login?error")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
-            .userDetailsService(userDetailsService);
+                .authorizeHttpRequests(authz -> authz
+                        // 누구나 접근 가능
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/signup",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // 관리자 페이지
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // 상품 등록/삭제/수정은 ADMIN만 가능
+                        .requestMatchers(
+                                "/products/add",
+                                "/products/*/delete",
+                                "/products/*/edit"
+                        ).hasRole("ADMIN")
+
+                        // 상품 등록 POST도 ADMIN만 가능
+                        .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
+
+                        // 비밀번호 변경은 로그인 사용자만 가능
+                        .requestMatchers("/user/password").authenticated()
+
+                        // 나머지는 로그인 필요
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home", true)
+                        .failureUrl("/login?error")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .userDetailsService(userDetailsService);
 
         return http.build();
     }
