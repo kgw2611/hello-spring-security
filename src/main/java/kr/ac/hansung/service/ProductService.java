@@ -24,12 +24,6 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    public Product findById(Long id) {
-        return productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다: " + id));
-    }
-
     @Transactional
     public Product save(ProductDto dto) {
         Product product = new Product(
@@ -49,5 +43,24 @@ public class ProductService {
 
     public Page<Product> searchProducts(String keyword, Pageable pageable) {
         return productRepository.findByNameContaining(keyword, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Product findById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
+    }
+
+    @Transactional
+    public Product updateProduct(Long id, ProductDto dto) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
+
+        product.setName(dto.getName());
+        product.setPrice(dto.getPrice());
+        product.setStock(dto.getStock());
+        product.setDescription(dto.getDescription());
+
+        return product;
     }
 }
